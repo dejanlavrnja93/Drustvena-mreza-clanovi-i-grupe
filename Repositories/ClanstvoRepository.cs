@@ -5,44 +5,44 @@ namespace DrustvenaMreza.Repositories;
 
 public class ClanstvoRepository
 {
-    private readonly string _putanja;
 
-    public ClanstvoRepository(IWebHostEnvironment environment)
-    {
-        _putanja = Path.Combine(environment.ContentRootPath,"Data", "clanstva.csv");
-    }
-    public List<Clanstvo> DobaviSve()
-    {
-        List<Clanstvo> clanstva = new List<Clanstvo>();
-        foreach (string red in File.ReadAllLines(_putanja))
-        {
-            if(string.IsNullOrWhiteSpace(red))
-            {
-                continue;
-            }
-            string[] podaci = red.Split(',');
-            Clanstvo clanstvo = new Clanstvo
-            {
-                KorisnikId = int.Parse(podaci[0]),
-                GrupaId = int.Parse(podaci[1])
-            };
-            clanstva.Add(clanstvo);
-        };
-        return clanstva;
-    }
-    //Metoda za izdvajanje clanstva jedne grupe
-    public List<Clanstvo> DobaviPoGrupi(int grupaId)
-    {
-        List<Clanstvo> clanstva = DobaviSve();
-        List<Clanstvo> clanstvaGrupe = new List<Clanstvo>();
+    private const string filePath = "Data/clanstva.csv";
 
-        foreach (Clanstvo clanstvo in clanstva)
+    public static List<Clanstvo> Data = new List<Clanstvo>();
+
+    public ClanstvoRepository()
+    {
+        if (Data.Count == 0)
         {
-            if(clanstvo.GrupaId == grupaId)
-            {
-                clanstvaGrupe.Add(clanstvo);
-            }
+            Load();
         }
-        return clanstvaGrupe;
+    }
+
+    private void Load()
+    {
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
+        string[] lines = File.ReadAllLines(filePath);
+        foreach (string line in lines)
+        {
+            string[] parts = line.Split(',');
+            int korisnikId = int.Parse(parts[0]);
+            int grupaId = int.Parse(parts[1]);
+            Clanstvo clanstvo = new Clanstvo { KorisnikId = korisnikId, GrupaId = grupaId };
+            Data.Add(clanstvo);
+
+        }
+    }
+
+    public void Save()
+    {
+        List<string> lines = new List<string>();
+        foreach (Clanstvo c in Data)
+        {
+            lines.Add($"{c.KorisnikId},{c.GrupaId}");
+        }
+        File.WriteAllLines(filePath, lines);
     }
 }

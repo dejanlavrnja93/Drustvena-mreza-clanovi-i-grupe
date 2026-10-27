@@ -26,6 +26,7 @@ public class GrupaRepository
         string[] lines = File.ReadAllLines(filePath);
         foreach (string line in lines)
         {
+            
             string[] parts = line.Split(',');
             int id = int.Parse(parts[0]);
             string imeGrupe = parts[1];
@@ -40,7 +41,7 @@ public class GrupaRepository
         List<string> lines = new List<string>();
         foreach (Grupa g in Data.Values)
         {
-            lines.Add($"{g.Id},{g.ImeGrupe},{g.DatumOsnivanja}");
+            lines.Add($"{g.Id},{g.ImeGrupe},{g.DatumOsnivanja.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
         }
         File.WriteAllLines(filePath, lines);
     }
