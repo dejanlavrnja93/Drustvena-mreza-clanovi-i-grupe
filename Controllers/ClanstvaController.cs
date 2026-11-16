@@ -25,18 +25,18 @@ public class ClanstvaContoller : ControllerBase
 
         List<Korisnik> korisnici = new List<Korisnik>();
 
-        if(!GrupaRepository.Data.ContainsKey(grupaId))
+        if (!GrupaRepository.Data.ContainsKey(grupaId))
         {
             return NotFound();
         }
         List<Korisnik> sviKorisnici = korisnikRepository.DobaviSve();
-        
+
 
         foreach (Clanstvo clanstvo in clanstva)
         {
-           if(clanstvo.GrupaId == grupaId)
+            if (clanstvo.GrupaId == grupaId)
             {
-               foreach(Korisnik korisnik in sviKorisnici)
+                foreach (Korisnik korisnik in sviKorisnici)
                 {
                     if (korisnik.Id == clanstvo.KorisnikId)
                     {
@@ -62,7 +62,7 @@ public class ClanstvaContoller : ControllerBase
             return NotFound();
         }
 
-        foreach(Clanstvo clanstvo in ClanstvoRepository.Data)
+        foreach (Clanstvo clanstvo in ClanstvoRepository.Data)
         {
             if (clanstvo.GrupaId == grupaId && clanstvo.KorisnikId == korisnikId)
             {
@@ -114,4 +114,5 @@ public class ClanstvaContoller : ControllerBase
         clanstvoRepository.Save();
         return Ok();
     }
+
 }
