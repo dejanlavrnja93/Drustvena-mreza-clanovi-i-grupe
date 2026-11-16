@@ -1,5 +1,4 @@
 using DrustvenaMreza.Models;
-using System.Data.Common;
 using System.Globalization;
 
 namespace DrustvenaMreza.Repositories;
@@ -7,6 +6,7 @@ namespace DrustvenaMreza.Repositories;
 public class KorisnikRepository
 {
     private readonly string _putanja;
+    
     public KorisnikRepository(IWebHostEnvironment environment)
     {
         _putanja = Path.Combine(environment.ContentRootPath, "Data", "korisnici.csv");
@@ -26,16 +26,23 @@ public class KorisnikRepository
             }
 
             string[] podaci = red.Split(',');
+
             Korisnik korisnik = new Korisnik
             {
                 Id = int.Parse(podaci[0]),
                 KorisnickoIme = podaci[1],
                 Ime = podaci[2],
                 Prezime = podaci[3],
-                DatumRodjenja = DateOnly.ParseExact(podaci[4], "yyyy-MM-dd", CultureInfo.InvariantCulture)
+                DatumRodjenja = DateOnly.ParseExact(
+                    podaci[4],
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture
+                )
             };
+
             korisnici.Add(korisnik);
         }
+
         return korisnici;
     }
     //2.Dobavi podatke o jednom odabranom korisniku
