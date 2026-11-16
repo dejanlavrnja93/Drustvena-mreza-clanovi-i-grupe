@@ -47,7 +47,7 @@ public class KorisniciController : ControllerBase
     {
         _repository = repository;
 
-        string putanjaBaze = Path.Combine(environment.ContentRootPath,"database","mydatabase.db");
+        string putanjaBaze = Path.Combine(environment.ContentRootPath,"Data","mydatabase.db");
     
         _connectionString = new SqliteConnectionStringBuilder
         {
