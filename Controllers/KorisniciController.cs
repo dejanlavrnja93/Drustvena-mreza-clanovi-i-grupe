@@ -1,8 +1,8 @@
+using System.Linq.Expressions;
 using DrustvenaMreza.Models;
 using DrustvenaMreza.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
-using System.Globalization;
 
 namespace DrustvenaMreza.Controllers;
 
@@ -11,64 +11,54 @@ namespace DrustvenaMreza.Controllers;
 public class KorisniciController : ControllerBase
 {
     private readonly KorisnikRepository _repository;
-    private readonly string _connectionString;
-
-    private List<Korisnik> GetAllFromDatabase()
-    {
-        List<Korisnik>korisnici = new List<Korisnik>();
-        using SqliteConnection connection = new SqliteConnection(_connectionString);
-        connection.Open();
-        using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT Id, Username, Name, Surname, Birthday
-            FROM Users
-            ORDER BY Id;
-            """;
-        using SqliteDataReader reader = command.ExecuteReader();
-        while(reader.Read())
-        {
-            korisnici.Add(new Korisnik
-            {
-                Id = reader.GetInt32(0),
-                KorisnickoIme = reader.GetString(1),
-                Ime = reader.GetString(2),
-                Prezime = reader.GetString(3),
-                DatumRodjenja = DateOnly.ParseExact(
-                    reader.GetString(4),
-                    "yyyy-MM-dd",
-                    CultureInfo.InvariantCulture
-                )
-            });
-        }
-        return korisnici;
-    }
+    private readonly UserDbRepository _dbRepository;
 
     public KorisniciController(KorisnikRepository repository, IWebHostEnvironment environment)
     {
         _repository = repository;
-
-        string putanjaBaze = Path.Combine(environment.ContentRootPath,"Data","mydatabase.db");
-    
-        _connectionString = new SqliteConnectionStringBuilder
-        {
-            DataSource=putanjaBaze
-        }.ToString();
+        _dbRepository = new UserDbRepository(environment);
     }
     [HttpGet]
     public ActionResult<List<Korisnik>>DobaviSve()
     {
-        return Ok(GetAllFromDatabase());
+        try
+        {
+            return Ok(_dbRepository.GetAll());
+        }
+        catch(SqliteException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem (statusCode:500, detail:"Greska prilikom pristupanja bazi");
+        }
+        catch (FormatException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem (statusCode:500, detail:"Podaci nisu u dobrom formatu");
+        }
     }
     //Dobavljanje korisnika po ID-u
     [HttpGet("{id:int}")]
     public ActionResult<Korisnik> DobaviPoId(int id)
     {
-        Korisnik? korisnik = _repository.DobaviPoId(id);
-        if(korisnik == null)
+        try
         {
-            return NotFound();
+            Korisnik? korisnik = _dbRepository.GetById(id);
+            if(korisnik == null)
+            {
+                return NotFound("Korisnik nije pronadjen");
+            }
+            return Ok(korisnik);
         }
-        return Ok(korisnik);
+        catch(SqliteException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem (statusCode:500, detail:"Greska prilikom pristupanja bazi");
+        }
+        catch(FormatException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem (statusCode:500, detail:"Podaci nisu u dobrom formatu");
+        }
     }
     //Kreiranje korisnika
     [HttpPost]
