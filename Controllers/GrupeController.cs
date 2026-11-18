@@ -83,41 +83,124 @@ namespace DrustvenaMreza.Controllers
 
 		[HttpPost]
 		public ActionResult<Grupa> Create([FromBody] Grupa newGrupa)
-		{ 
-			if(string.IsNullOrEmpty(newGrupa.ImeGrupe))
-            {
-                return BadRequest();
-            }
-            int newId = GenerateNewId(GrupaRepository.Data.Keys.ToList());
-            newGrupa.Id = newId;
-            newGrupa.DatumOsnivanja = DateTime.Today;
-            GrupaRepository.Data[newId] = newGrupa;
-			grupaRepository.Save();
-            return NoContent();
-        } 
-		private int GenerateNewId(List<int> identifikatori)
         {
-			int maxID = 0;
-			foreach(int i in identifikatori)
+            try
             {
-				if(i > maxID)
+                if (string.IsNullOrEmpty(newGrupa.ImeGrupe))
                 {
-					maxID = i;
+                    return BadRequest();
                 }
+
+                newGrupa.DatumOsnivanja = DateTime.Today;
+                Grupa createdGrupa = grupaDbRepository.Create(newGrupa);
+
+                return Ok(createdGrupa);
             }
-			return maxID + 1;
+            catch (SqliteException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Greška pri konekciji ili izvršavanju neispravnih SQL upita.");
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Greška u konverziji podataka.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Konekcija nije otvorena ili je otvorena više puta:");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Neočekivana greška.");
+            }
+
+
         }
 
-		[HttpDelete("{id}")]
-		public ActionResult Delete(int id)
-		{
-			if (!GrupaRepository.Data.ContainsKey(id))
-			{
-				return NotFound();
-			}
-			GrupaRepository.Data.Remove(id);
-			grupaRepository.Save();
-			return Ok();
-		}
+
+        [HttpDelete("{id}")]
+        public ActionResult Delete(int id)
+        {
+            try
+            {
+
+                Grupa? grupa = grupaDbRepository.GetById(id);
+                if (grupa == null)
+                {
+                    return NotFound();
+                }
+                grupaDbRepository.Delete(id);
+                return NoContent();
+            }
+            catch (SqliteException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Greška pri konekciji ili izvršavanju neispravnih SQL upita.");
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Greška u konverziji podataka.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Konekcija nije otvorena ili je otvorena više puta:");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Neočekivana greška.");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public ActionResult Update(int id, [FromBody] Grupa grupa)
+        {
+            try
+            {
+
+
+                if (string.IsNullOrEmpty(grupa.ImeGrupe))
+                {
+                    return BadRequest();
+                }
+
+                Grupa? postojecaGrupa = grupaDbRepository.GetById(id);
+
+                if (postojecaGrupa == null)
+                {
+                    return NotFound();
+                }
+
+                grupa.Id = id;
+
+                grupaDbRepository.Update(grupa);
+
+                return NoContent();
+            }
+            catch (SqliteException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Greška pri konekciji ili izvršavanju neispravnih SQL upita.");
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Greška u konverziji podataka.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Konekcija nije otvorena ili je otvorena više puta:");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Neočekivana greška.");
+            }
     }
 }

@@ -58,5 +58,45 @@ namespace DrustvenaMreza.Repositories
             connection.Close();
             return null;
         }
+
+        public Grupa Create(Grupa grupa)
+        {
+            using SqliteConnection connection = new SqliteConnection(connectionString);
+            connection.Open();
+            string query = @"INSERT INTO Groups (Name, CreationDate) VALUES (@Name, @CreationDate); SELECT last_insert_rowid();";
+            using SqliteCommand command = new SqliteCommand(query, connection);
+            command.Parameters.AddWithValue("@Name", grupa.ImeGrupe);
+            command.Parameters.AddWithValue("@CreationDate", grupa.DatumOsnivanja);
+            int newId = Convert.ToInt32(command.ExecuteScalar());
+            connection.Close();
+            grupa.Id = newId;
+            return new Grupa(newId, grupa.ImeGrupe, grupa.DatumOsnivanja);
+        }
+
+        public void Delete(int id)
+        {
+            using SqliteConnection connection = new SqliteConnection(connectionString);
+            connection.Open();
+            string query = "DELETE FROM Groups WHERE Id = @Id";
+            using SqliteCommand command = new SqliteCommand(query, connection);
+            command.Parameters.AddWithValue("@Id", id);
+            command.ExecuteNonQuery();
+            connection.Close();
+            
+        }
+
+        public void Update(Grupa grupa)
+        {
+            using SqliteConnection connection = new SqliteConnection(connectionString);
+            connection.Open();
+            string query = "UPDATE Groups SET Name = @Name, CreationDate = @CreationDate WHERE Id = @Id";
+            using SqliteCommand command = new SqliteCommand(query, connection);
+            command.Parameters.AddWithValue("@Name", grupa.ImeGrupe);
+            command.Parameters.AddWithValue("@CreationDate", grupa.DatumOsnivanja);
+            command.Parameters.AddWithValue("@Id", grupa.Id);
+            command.ExecuteNonQuery();
+            connection.Close();
+        }
+
     }
 }
