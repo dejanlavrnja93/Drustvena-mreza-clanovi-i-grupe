@@ -1,5 +1,7 @@
 using DrustvenaMreza.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
+using System.Data;
 using System.Globalization;
 
 namespace DrustvenaMreza.Repositories;
@@ -78,5 +80,71 @@ public class UserDbRepository
                 CultureInfo.InvariantCulture
             )
         };
+    }
+
+    public Korisnik Create(Korisnik korisnik)
+    {
+        using SqliteConnection connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        using SqliteCommand command = connection.CreateCommand();
+
+        command.CommandText = """
+        INSERT INTO Users (Username,Name,Surname,Birthday)
+        VALUES (@username,@name,@surname,@birthday);
+        """;
+
+        command.Parameters.AddWithValue("@username", korisnik.KorisnickoIme);   
+        command.Parameters.AddWithValue("@name", korisnik.Ime);
+        command.Parameters.AddWithValue("@surname", korisnik.Prezime);
+        command.Parameters.AddWithValue("@birthday",korisnik.DatumRodjenja.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        
+        command.ExecuteNonQuery();
+
+        command.CommandText = "SELECT last_insert_rowid();";
+        command.Parameters.Clear();
+
+        korisnik.Id = checked((int)(long)command.ExecuteScalar()!);
+        return korisnik;
+    }
+
+    public bool Update(Korisnik korisnik)
+    {
+        using SqliteConnection connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        using SqliteCommand command = connection.CreateCommand();
+
+        command.CommandText = """
+        UPDATE Users
+        SET Username = @username,
+            Name = @name,
+            Surname = @surname,
+            Birthday = @birthday
+        WHERE Id = @id;
+        """;
+
+        command.Parameters.AddWithValue("@id", korisnik.Id);
+        command.Parameters.AddWithValue("@username", korisnik.KorisnickoIme);
+        command.Parameters.AddWithValue("@name", korisnik.Ime);
+        command.Parameters.AddWithValue("@surname", korisnik.Prezime);
+        command.Parameters.AddWithValue("@birthday", korisnik.DatumRodjenja.ToString
+        ("yyyy-MM-dd", CultureInfo.InvariantCulture));
+
+        int brojIzmenjeihRedova = command.ExecuteNonQuery();
+        return brojIzmenjeihRedova > 0;
+    }
+
+    public bool Delete (int id)
+    {
+        using SqliteConnection connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        using SqliteCommand command = connection.CreateCommand();
+
+        command.CommandText= """
+        DELETE FROM Users
+        WHERE Id = @id;
+        """;
+        command.Parameters.AddWithValue("@id", id);
+        int brojObrisanihRedova = command.ExecuteNonQuery();
+        return brojObrisanihRedova > 0;
     }
 }

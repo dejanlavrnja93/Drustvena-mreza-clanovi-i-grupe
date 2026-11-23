@@ -64,22 +64,74 @@ public class KorisniciController : ControllerBase
     [HttpPost]
     public ActionResult<Korisnik>Kreiraj(Korisnik korisnik)
     {
-        Korisnik kreiraniKorisnik = _repository.Kreiraj(korisnik);
-        return CreatedAtAction(
-            nameof(DobaviPoId),
-            new {id = kreiraniKorisnik.Id},
-            kreiraniKorisnik
-        );
+        try
+        {
+            Korisnik kreiraniKorisnik = _dbRepository.Create(korisnik);
+            return CreatedAtAction(nameof(DobaviPoId),
+                                    new {id = kreiraniKorisnik.Id},
+                                    kreiraniKorisnik);
+        }
+        catch (SqliteException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem(
+                statusCode:500,
+                detail:"Greška prilikom čuvanja korisnika u bazi."
+            );
+        }
+        catch (OverflowException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem(statusCode:500,
+                            detail:"Identifikator korisnika je izvan podržanog opsega.");
+        }
     }
     //Azuriranje korisnika
     [HttpPut("{id:int}")]
     public IActionResult Azurija(int id, Korisnik korisnik)
     {
-        bool uspesno = _repository.Azuriraj(id, korisnik);
-        if(!uspesno)
+       if(id != korisnik.Id)
         {
-            return NotFound();
+            return BadRequest( "ID u adresi mora odgovarati ID-ju korisnika.");
         }
-        return NoContent();
+        try
+        {
+            bool uspesno = _dbRepository.Update(korisnik);
+
+            if(!uspesno)
+            {
+                return NotFound("Korisnik nije pronađen.");
+            }
+            
+            return NoContent();
+        }
+        catch(SqliteException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem(statusCode:500,
+            detail: "Greška prilikom izmene korisnika u bazi.");
+        }
+    }
+    [HttpDelete("{id:int}")]
+    public IActionResult Obrisi(int id)
+    {
+        try
+        {
+            bool uspesno = _dbRepository.Delete(id);
+            if(!uspesno)
+            {
+                return NotFound("Korisnik nije pronađen.");
+            }
+            return NoContent();
+        }
+        catch (SqliteException ex)
+        {
+            Console.Error.WriteLine(ex);
+
+            return Problem(
+                statusCode:500,
+                detail:"Greška prilikom brisanja korisnika iz baze."
+            );
+        }
     }
 }
