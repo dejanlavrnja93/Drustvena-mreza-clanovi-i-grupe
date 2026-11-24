@@ -20,13 +20,22 @@ namespace DrustvenaMreza.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Grupa>> GetAll()
+        public ActionResult GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-
+            if (page < 1|| pageSize < 1)
+            {
+                return BadRequest("Stranica i veličina stranice moraju biti veci od nule.");
+            }
             try
             {
-                List<Grupa> grupe = grupaDbRepository.GetAll();
-                return Ok(grupe);
+                List<Grupa> grupe = grupaDbRepository.GetPaged(page, pageSize);
+                int totalCount = grupaDbRepository.CountAll();
+                Object result = new
+                {
+                    Data = grupe,
+                    TotalCount = totalCount
+                };
+                return Ok(result);
             }
             catch (SqliteException ex)
             {

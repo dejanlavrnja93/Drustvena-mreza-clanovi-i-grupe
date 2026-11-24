@@ -12,7 +12,7 @@ namespace DrustvenaMreza.Repositories
             connectionString = configuration["ConnectionString:SQLiteConnection"];
         }
 
-        public List<Grupa> GetAll()
+        public List<Grupa> GetPaged(int page, int pageSize)
         {
             List<Grupa> grupe = new List<Grupa>();
 
@@ -21,8 +21,10 @@ namespace DrustvenaMreza.Repositories
             using SqliteConnection connection = new SqliteConnection(connectionString);
             connection.Open();
 
-            string query = "SELECT Id, Name, CreationDate FROM Groups";
+            string query = "SELECT Id, Name, CreationDate FROM Groups LIMIT @PageSize OFFSET @Offset";
             using SqliteCommand command = new SqliteCommand(query, connection);
+            command.Parameters.AddWithValue("@PageSize", pageSize);
+            command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
             using SqliteDataReader reader = command.ExecuteReader();
 
             while (reader.Read())
@@ -101,6 +103,17 @@ namespace DrustvenaMreza.Repositories
             command.Parameters.AddWithValue("@Id", grupa.Id);
             command.ExecuteNonQuery();
             connection.Close();
+        }
+
+        public int CountAll()
+        {
+            using SqliteConnection connection = new SqliteConnection(connectionString);
+            connection.Open();
+            string query = "SELECT COUNT(*) FROM Groups";
+            using SqliteCommand command = new SqliteCommand(query, connection);
+            int count = Convert.ToInt32(command.ExecuteScalar());
+            connection.Close();
+            return count;
         }
 
     }
