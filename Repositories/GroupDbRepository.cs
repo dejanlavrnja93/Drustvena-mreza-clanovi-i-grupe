@@ -5,7 +5,12 @@ namespace DrustvenaMreza.Repositories
 {
     public class GroupDbRepository
     {
-        private const string connectionString = "Data Source=Data/mydatabase.db";
+        private readonly string connectionString;
+
+        public GroupDbRepository(IConfiguration configuration)
+        {
+            connectionString = configuration["ConnectionString:SQLiteConnection"];
+        }
 
         public List<Grupa> GetAll()
         {

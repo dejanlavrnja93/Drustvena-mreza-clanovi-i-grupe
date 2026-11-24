@@ -482,3 +482,5 @@ $RECYCLE.BIN/
 *.swp
 Data/mydatabase.db
 /database/
+# SQLite database project
+Data/mydatabase.sqbpro

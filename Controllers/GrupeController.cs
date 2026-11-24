@@ -6,18 +6,23 @@ using Microsoft.Data.Sqlite;
 namespace DrustvenaMreza.Controllers
 {
 
-	[Route("api/grupe")]
-	[ApiController]
-	public class GrupaController : ControllerBase
-	{
-		private GroupDbRepository grupaDbRepository = new GroupDbRepository();
-        private GrupaRepository grupaRepository = new GrupaRepository();
+    [Route("api/grupe")]
+    [ApiController]
+    public class GrupaController : ControllerBase
+    {
+        private GroupDbRepository grupaDbRepository;
+        private GrupaRepository grupaRepository;
 
+        public GrupaController(GroupDbRepository grupaDbRepository, GrupaRepository grupaRepository)
+        {
+            this.grupaDbRepository = grupaDbRepository;
+            this.grupaRepository = grupaRepository;
+        }
 
         [HttpGet]
-		public ActionResult<List<Grupa>> GetAll()
-		{
-            
+        public ActionResult<List<Grupa>> GetAll()
+        {
+
             try
             {
                 List<Grupa> grupe = grupaDbRepository.GetAll();
@@ -48,7 +53,7 @@ namespace DrustvenaMreza.Controllers
         [HttpGet("{id}")]
         public ActionResult<Grupa> GetById(int id)
         {
-            try     
+            try
             {
                 Grupa? grupa = grupaDbRepository.GetById(id);
                 if (grupa == null)
@@ -81,8 +86,8 @@ namespace DrustvenaMreza.Controllers
 
         }
 
-		[HttpPost]
-		public ActionResult<Grupa> Create([FromBody] Grupa newGrupa)
+        [HttpPost]
+        public ActionResult<Grupa> Create([FromBody] Grupa newGrupa)
         {
             try
             {
@@ -202,5 +207,6 @@ namespace DrustvenaMreza.Controllers
                 Console.WriteLine(ex.Message);
                 return StatusCode(500, "Neočekivana greška.");
             }
+        }
     }
 }

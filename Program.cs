@@ -8,7 +8,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<KorisnikRepository>();
 builder.Services.AddScoped<ClanstvoRepository>();
-
+builder.Services.AddScoped<GroupDbRepository>();
+builder.Services.AddScoped<GrupaRepository>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
