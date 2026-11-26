@@ -23,7 +23,7 @@ public class UserDbRepository
         _connectionString = settings.ToString();
     
     }
-    public List<Korisnik> GetAll()
+    public List<Korisnik> GetAll(int page, int pageSize)
     {
         List<Korisnik>korisnici = new List<Korisnik>();
         using SqliteConnection connection = new SqliteConnection(_connectionString);
@@ -33,8 +33,13 @@ public class UserDbRepository
         command.CommandText = """
             SELECT Id, Username, Name, Surname, Birthday
             FROM Users
-            ORDER BY Id;
+            ORDER BY Id
+            LIMIT @limit OFFSET @offset;
             """;
+
+        command.Parameters.AddWithValue("@limit",pageSize);
+        command.Parameters.AddWithValue("@offset",((long)page-1)* pageSize);
+
         using SqliteDataReader reader = command.ExecuteReader();
         while(reader.Read())
         {
@@ -52,6 +57,17 @@ public class UserDbRepository
             });
         }
         return korisnici;
+    }
+
+    public long CountAll()
+    {
+        using SqliteConnection connection = new SqliteConnection(_connectionString);
+        connection.Open();
+
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT (*) FROM Users;";
+
+        return Convert.ToInt64(command.ExecuteScalar());
     }
 
     public Korisnik? GetById(int id)

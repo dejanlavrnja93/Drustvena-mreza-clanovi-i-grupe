@@ -16,30 +16,42 @@ public class KorisniciController : ControllerBase
         _dbRepository = dbRepository;
     }
     [HttpGet]
-    public ActionResult<List<Korisnik>>DobaviSve()
+    public ActionResult<List<Korisnik>>DobaviSve(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
+        if(page < 1 || pageSize < 1)
+        {
+            return BadRequest("Broj stranice i veličina stranice moraju biti veći od nule.");
+        }
+
         try
         {
-            return Ok(_dbRepository.GetAll());
+            List<Korisnik> korisnici = _dbRepository.GetAll(page,pageSize);
+            long totalCount = _dbRepository.CountAll();
+
+            return Ok(new
+            {
+                Data = korisnici,totalCount = totalCount
+            });
         }
         catch(SqliteException ex)
         {
             Console.Error.WriteLine(ex);
-            return Problem (statusCode:500, detail:"Greska prilikom pristupanja bazi");
+            return Problem(statusCode: 500, detail: "Greška prilikom pristupanja bazi.");
         }
-        catch (FormatException ex)
+        catch(FormatException ex)
         {
             Console.Error.WriteLine(ex);
-            return Problem (statusCode:500, detail:"Podaci nisu u dobrom formatu");
+            return Problem(statusCode: 500, detail: "Podaci nisu u dobrom formatu.");
         }
-        //Catch za statusni kod 500
         catch (InvalidOperationException ex)
         {
             Console.Error.WriteLine(ex);
-            return Problem(statusCode: StatusCodes.Status500InternalServerError,
-            detail:"Došlo je do greške pri obradi korisnika.");
+            return Problem(statusCode: 500, detail: "Došlo je do greške pri obradi korisnika.");
         }
     }
+   
     //Dobavljanje korisnika po ID-u
     [HttpGet("{id:int}")]
     public ActionResult<Korisnik> DobaviPoId(int id)
