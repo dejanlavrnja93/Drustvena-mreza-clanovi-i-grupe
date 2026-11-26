@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-
+builder.Services.AddScoped<UserDbRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

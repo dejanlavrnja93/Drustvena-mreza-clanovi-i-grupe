@@ -10,14 +10,18 @@ public class UserDbRepository
 {
     private readonly string _connectionString;
 
-    public UserDbRepository(IWebHostEnvironment environment)
+    public UserDbRepository(IWebHostEnvironment environment, IConfiguration configuration)
     {
-        string putanjaBaze = Path.Combine(environment.ContentRootPath, "Data", "mydatabase.db");
-        _connectionString = new SqliteConnectionStringBuilder
-        {
-            DataSource=putanjaBaze,
-            Mode= SqliteOpenMode.ReadWrite
-        }.ToString();
+       string connectionString = configuration["ConnectionString:SQLiteConnection"]
+       ?? throw new InvalidOperationException("Nedostaje podešavanje ConnectionString:SQLiteConnection.");
+        //Podešavanje pune putanje i otvaranje postojeće SQLite baze za čitanje i pisanje.
+       var settings = new SqliteConnectionStringBuilder(connectionString);
+       settings.DataSource = Path.GetFullPath(
+        settings.DataSource, environment.ContentRootPath);
+        settings.Mode = SqliteOpenMode.ReadWrite;
+
+        _connectionString = settings.ToString();
+    
     }
     public List<Korisnik> GetAll()
     {

@@ -9,14 +9,11 @@ namespace DrustvenaMreza.Controllers;
 [ApiController]
 [Route("api/korisnici")]
 public class KorisniciController : ControllerBase
-{
-    private readonly KorisnikRepository _repository;
-    private readonly UserDbRepository _dbRepository;
+{   private readonly UserDbRepository _dbRepository;
 
-    public KorisniciController(KorisnikRepository repository, IWebHostEnvironment environment)
+    public KorisniciController(UserDbRepository dbRepository)
     {
-        _repository = repository;
-        _dbRepository = new UserDbRepository(environment);
+        _dbRepository = dbRepository;
     }
     [HttpGet]
     public ActionResult<List<Korisnik>>DobaviSve()
@@ -34,6 +31,13 @@ public class KorisniciController : ControllerBase
         {
             Console.Error.WriteLine(ex);
             return Problem (statusCode:500, detail:"Podaci nisu u dobrom formatu");
+        }
+        //Catch za statusni kod 500
+        catch (InvalidOperationException ex)
+        {
+            Console.Error.WriteLine(ex);
+            return Problem(statusCode: StatusCodes.Status500InternalServerError,
+            detail:"Došlo je do greške pri obradi korisnika.");
         }
     }
     //Dobavljanje korisnika po ID-u
